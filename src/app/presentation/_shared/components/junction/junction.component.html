@@ -1,0 +1,9 @@
+<div class="text-center">
+  <h1>Smart Traffic Light</h1>
+    <app-traffic-light direction="north-south" initialState = "green"></app-traffic-light>
+    <app-traffic-light direction="east-west" initialState = "red"></app-traffic-light>
+    <div>
+      <p class="text-center">North-South Queue: {{ northSouthQueue$ | async }}</p>
+      <p>East-West Queue: {{ eastWestQueue$ | async }}</p>
+    </div>
+  </div>

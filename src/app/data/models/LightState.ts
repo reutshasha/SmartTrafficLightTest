@@ -1,0 +1,1 @@
+export type LightState = 'red' | 'yellow' | 'green' | 'flash-green';

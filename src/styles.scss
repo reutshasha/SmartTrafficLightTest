@@ -1,1 +1,44 @@
-/* You can add global styles to this file, and also import other style files */
+@import "/src/styles/context.scss";
+@import "/src/styles/material-theme.scss";
+@import "/src/styles/css-reset.scss";
+@import "/src/styles/css-base-classes.scss";
+
+:root {
+  // Dimensions:
+  --txt-sm: #{$font-size-sm};
+  --txt-md: #{$font-size-md};
+  --txt-lg: #{$font-size-lg};
+  --txt-xl: #{$font-size-xl};
+  // Colors - General:
+  --color-white: #fff;
+  --color-black: #000;
+  --color-dark: #444;
+  --color-success: #27c942;
+  --color-info: #0070ac;
+  --color-warning: #FFFF00;
+  --color-warn: #e4ab00;
+  --color-danger: #ff0000;
+  --color-success-bg: #dcfae3;
+  --color-danger-bg: #fbe7e9;
+  --color-primary: #006fab;
+  --color-accent: #b40071;
+  --color-accent-light: #e2a3cb;
+  --color-magenta: #cd007a;
+  --color-ocean-blue: #0070ac;
+  --color-ocean-blue-light: #a2d1ea;
+  --color-ocean-blue-light-2: #d6e8f1;
+  --color-light-blue-grey: #daebf2;
+  --color-secondary: #777;
+  --color-text: #222;
+  --color-text-title: #444;
+  --color-separator: #e0e0e0;
+  --color-bg-readonly: #fafafa;
+  --color--primary: #004c94;
+}
+
+h1,p{
+  font-family: $font-family-general;
+}
+h1{
+  padding-top: $space-4
+}
