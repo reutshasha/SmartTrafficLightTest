@@ -6,32 +6,63 @@
   border-radius: 0.5rem;
   transition: transform 2s;
 }
-  
-  .north-south {
-    transform: translateY(-100%);
+
+.north-south {
+  transform: translateY(-100%);
+}
+
+.east-west {
+  transform: translateX(-100%);
+}
+
+.car.waiting {
+  transform: none;
+}
+
+.north-to-south {
+  animation: moveNS 4s linear infinite;
+}
+
+.east-to-west {
+  animation: moveEW 4s linear infinite;
+}
+
+@keyframes moveNS {
+  0% {
+    top: 0;
+    left: 50%;
   }
-  
-  .east-west {
-    transform: translateX(-100%);
+
+  100% {
+    top: 100%;
+    left: 50%;
   }
-  
-  .car.waiting {
-    transform: none;
+}
+
+@keyframes moveEW {
+  0% {
+    left: 0;
+    top: 50%;
   }
-  .north-to-south {
-    animation: moveNS 4s linear infinite;
+
+  100% {
+    left: 100%;
+    top: 50%;
   }
-  
-  .east-to-west {
-    animation: moveEW 4s linear infinite;
-  }
-  
-  @keyframes moveNS {
-    0% { top: 0; left: 50%; }
-    100% { top: 100%; left: 50%; }
-  }
-  
-  @keyframes moveEW {
-    0% { left: 0; top: 50%; }
-    100% { left: 100%; top: 50%; }
-  }
+}
+
+.northToSouth {
+  height: 50px;
+  width: 30px;
+  background-color: blue;
+  margin: 5px;
+  border: 2px solid black;
+}
+
+.eastToWest {
+  height: 30px;
+  width: 50px;
+  background-color: rgb(0, 191, 255);
+  margin: 5px;
+  border: 2px solid black;
+}

@@ -1,113 +1,124 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Observable, Subscription, switchMap, tap, timer } from 'rxjs';
 import { TrafficService } from 'src/app/core/services/traffic.service';
+import { CarQueue } from 'src/app/data/models/CarQueue';
+
+const cycleTime = 15000;
+const yellowTime = 2500;
+const redTimeMin = 6000;
 
 @Component({
   selector: 'app-traffic-light',
   templateUrl: './traffic-light.component.html',
   styleUrls: ['./traffic-light.component.scss']
 })
-export class TrafficLightComponent implements OnInit, OnDestroy {
+
+export class TrafficLightComponent implements OnInit {
 
   @Input() direction!: 'north-south' | 'east-west';
   @Input() initialState!: any;
 
-  lightDirection$: Observable<'north-south' | 'east-west'> | undefined;
-  lightState: 'red' | 'yellow' | 'green' | 'flash-green' = 'green';
-  cars$!: Observable<any>;
-  // carsNorthSouth: number = 0;
-  // carsWestEast: number = 0;
+  @Output() lightChanged: EventEmitter<any> = new EventEmitter<any>();
+  lightStateNS!: string;
+  lightStateEW!: string;
 
-  private subscriptions: Subscription[] = [];
+  carsQueueNS: CarQueue = { before: [], between: [], after: [] };
+  carsQueueEW: CarQueue = { before: [], between: [], after: [] };
 
-  constructor(private trafficService: TrafficService) {}
+
+  @Input() getJunctionNS!: () => any;
+  @Input() getJunctionEW!: () => any;
+
+  get attribute(): any {
+    return this.attribute;
+  }
+
+
+  constructor() { }
 
   ngOnInit(): void {
+    //
+    this.carsQueueNS = this.getJunctionNS();
+    this.carsQueueEW = this.getJunctionEW();
+    this.startTrafficLight();
 
-    //TODO : DELTE initialState
-    this.lightState = this.initialState;
-    this.lightDirection$ = this.trafficService.lightDirection;
-    this.cars$ = this.direction === 'north-south' ? this.trafficService.northSouthQueue : this.trafficService.eastWestQueue;
-
-    // // // Subscribe to lightDirection$ changes to update lightState
-    // this.subscriptions.push(
-    //   this.lightDirection$.subscribe(direction => {
-    //     if (this.direction === direction) {
-    //       this.changeLightState();
-    //     } else {
-    //       this.lightState = 'red';
-    //     }
-    //   })
-    // );
-
-    // Automatically handle state changes based on lightState
-
-    this.subscriptions.push(
-      this.trafficService.lightState$.subscribe(state => {
-        this.lightState = state[this.direction];
-        // console.log(`Light state for ${this.direction}:`, this.lightState);
-      })
-    );
-
-    // Start observing cars and handle subscriptions
-    this.startObservingCars();
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+  private startTrafficLight(): void {
+
+    this.manageTrafficLight(cycleTime);
+    setInterval(() => {
+      this.manageTrafficLight(cycleTime);
+    }, cycleTime);
   }
 
-  private changeLightState(): void {
-    console.log('changeLightState():');
-    console.log('Light state:', this.lightState);  
-    if (this.lightState === 'green') {
-    // Switch to yellow after 2.5 seconds of green
-    timer(2500).pipe(
-      tap(() => {
-        this.lightState = 'flash-green';
-      }),
-      
-      switchMap(() => timer(5000).pipe(
-        tap(() => {
-          this.lightState = 'yellow';
-        }),
-        switchMap(() => timer(2000).pipe(
-          tap(() => {
-            this.lightState = 'red';
-          })
-        ))
-      ))
-    ).subscribe(); 
-  }else if (this.lightState === 'red') {
-      // Switch to green directly
-      timer(5000).pipe(
-        tap(() => {
-          this.lightState = 'yellow';
-        }),)
-      timer(3000).pipe(
-        tap(() => {
-          this.lightState = 'green';
-          //this.changeLightState(); // Restart the cycle
-        })
-      ).subscribe();
-    }   
+  private manageTrafficLight(cycleTime: number): void {
+    this.carsQueueNS = this.getJunctionNS();
+    this.carsQueueEW = this.getJunctionEW();
+    const greenTime = this.totalGreenTime(cycleTime);
+
+    const remainingTime = (cycleTime - greenTime - 2) * yellowTime;
+    const redTime = Math.max(remainingTime, redTimeMin);
+
+    this.changeLightState('green');
+    setTimeout(() => {
+      this.changeLightState('yellow');
+      setTimeout(() => {
+        this.changeLightState('red');
+        setTimeout(() => {
+          this.changeLightState('yellow');
+        }, redTime);
+      }, yellowTime);
+    }, greenTime);
   }
 
-  private startObservingCars(): void {
-    // Example subscription to cars$ (you can adjust this based on your actual implementation)
-    this.subscriptions.push(
-      this.cars$.subscribe(cars => {
-        console.log('Current cars:', cars);
-      })
-    );
+  private totalGreenTime(cycleTime: number): number {
+
+    const totalCarNorthToSouth = this.carsQueueNS.before.length + this.carsQueueNS.after.length + this.carsQueueNS.between.length;
+    const totalCarEastToWest = this.carsQueueEW.before.length + this.carsQueueEW.after.length + this.carsQueueEW.between.length;
+
+    const totalCarsNorthCurrent = this.carsQueueNS.before.length;
+    const totalCarsEastCurrent = this.carsQueueEW.before.length;
+
+    console.log('Amount cars NorthToSouth', totalCarNorthToSouth);
+    console.log('Amount cars EastToWest', totalCarNorthToSouth);
+
+    if (totalCarsNorthCurrent !== 0 && totalCarsEastCurrent !== 0) {
+      const greenRedRatio = Math.min(
+        totalCarsEastCurrent / totalCarsNorthCurrent,
+        2
+      );
+      return Math.max(
+        Math.round(((cycleTime - 2 * yellowTime) / 2) * greenRedRatio),
+        5000
+      );
+    } else {
+      return (cycleTime - 2 * yellowTime) / 2;
+    }
   }
 
-  // updateServiceState() {
-  //   if (this.direction === 'north-south') {
-  //     this.trafficService.setNorthSouthState(this.lightState);
-  //   } else {
-  //     this.trafficService.setEastWestState(this.lightState);
-  //   }
-  // }
+  changeLightState(value: any) {
+    console.log('first traffic changeLightState', value);
+
+    this.lightStateNS = value;
+    switch (value) {
+      case 'red':
+        this.lightStateEW = 'green';
+        break;
+      case 'green':
+        this.lightStateEW = 'red';
+        break;
+      case 'yellow':
+        this.lightStateEW = value;
+        break;
+      default:
+        break;
+    }
+
+    this.lightChanged.emit({
+      lightStateEW: this.lightStateEW,
+      lightStateNS: this.lightStateNS,
+    });
+  }
 }
 

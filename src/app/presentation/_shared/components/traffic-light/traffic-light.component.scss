@@ -2,36 +2,13 @@
   font-size: 3.5rem; 
   color: green; 
 }
-
-.traffic-light .light {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin: 0.5rem;
-  border-radius: 50%;
-  opacity: 0.3;
-}
   
 .traffic-light .light.active {
   opacity: 1;
 }
   
-.traffic-light .red {
-  background-color: var(--color-danger);
-}
-  
-.traffic-light .yellow {
-  background-color: var(--color-warning);
-}
-  
-.traffic-light .green {
-  background-color: var(--color-success);
-}
-  
 .traffic-light .green-flash {
-  animation: flashing 1s infinite alternate;
+  animation: flashing 3s infinite alternate;
 }
   
 @keyframes flashing {
@@ -63,4 +40,44 @@
 @keyframes moveEW {
   0% { left: 0; top: 50%; }
   100% { left: 100%; top: 50%; }
+}
+
+.red {
+  background-color: var(--color-danger);
+}
+
+.yellow {
+  background-color: var(--color-warning);
+}
+
+.green {
+  background-color: var(--color-success);
+}
+
+.traffic-light {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 80px;
+  height: 240px;
+  background-color: #0b0b0b;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.northLight, .eastLight {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.light {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin: 10px 0;
 }

@@ -1,223 +1,178 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, interval, Subscription, of, timer, combineLatest } from 'rxjs';
-import { switchMap, tap, concatMap, delay, takeWhile, filter } from 'rxjs/operators';
 
-type LightDirection = 'north-south' | 'east-west';
-type LightState = 'red' | 'yellow' | 'green' | 'flash-green';
+import { Injectable } from '@angular/core';
+import { Observable, interval, BehaviorSubject, Subscription } from 'rxjs';
+import { LightState } from 'src/app/data/models/LightState';
+
+const cycleTime = 15000;
+const yellowTime = 2500;
+const redTimeMin = 6000;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class TrafficService implements OnDestroy {
+export class TrafficService {
 
-  // TODO : i change to public make sure no mistakes
-  private northSouthQueueSubject = new BehaviorSubject<any>({ northSouth: [] });
-  private eastWestQueueSubject = new BehaviorSubject<any>({ eastWest: [] });
-
-  public northSouthState = new BehaviorSubject<string>('green');
-  public eastWestState = new BehaviorSubject<string>('green');
-  public northSouthQueue = new BehaviorSubject<number>(0);
-  public eastWestQueue = new BehaviorSubject<number>(0);
-  private lightStateSubject = new BehaviorSubject<{ [key: string]: 'red' | 'yellow' | 'green' | 'flash-green' }>({
+  private lightState: BehaviorSubject<string> = new BehaviorSubject<string>('green');
+  private lightStateSubject = new BehaviorSubject<{ [key: string]: LightState }>({
     'north-south': 'green',
     'east-west': 'red'
   });
 
-  // public northSouthQueue$ = this.northSouthQueueSubject.asObservable();
-  // public eastWestQueue$ = this.eastWestQueueSubject.asObservable();
+  private northSouthQueueSubject = new BehaviorSubject<any>({ northSouth: [] });
 
-  // northSouthState$ = this.northSouthState.asObservable();
-  // eastWestState$ = this.eastWestState.asObservable();
-  northSouthQueue$ = this.northSouthQueue.asObservable();
-  eastWestQueue$ = this.eastWestQueue.asObservable();
-  public lightState$ = this.lightStateSubject.asObservable();
+  private northToSouth: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private northToSouthBetween: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private northToSouthAfter: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private northToSouthAfterNow: BehaviorSubject<number> = new BehaviorSubject<number>(0);
 
-
-  lightDirection = new BehaviorSubject<LightDirection>('north-south');
-  // lightState = new BehaviorSubject<LightState>('red');
-
-  private isFlashing = new BehaviorSubject<boolean>(false);
-
+  private eastToWest: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private eastToWestBetween: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private eastToWestAfter: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private eastToWestAfterNow: BehaviorSubject<number> = new BehaviorSubject<number>(0);
   private subscriptions: Subscription = new Subscription();
 
-
   constructor() {
-    this.startGeneratingCars();
-    //this.startLightSwitching();
-    // this.processCars();
 
-    this.startTrafficLightCycle();
+    let interval: any;
 
-    this.processCars();
+    this.lightState.subscribe((state) => {
+      clearInterval(interval);
+      console.log('traffic light state has changed to:', state);
 
+      if (state !== 'yellow') {
+        interval = setInterval(() => {
+          if (state == 'green') {
+            if (this.northToSouth.value > 0) {
+              this.northToSouth.next(this.northToSouth.value - 1);
+              this.northToSouthBetween.next(this.northToSouthBetween.value + 1);
+              console.log("between north-south count: ", this.northToSouthBetween.value)
+              setTimeout(() => {
+                this.northToSouthBetween.next(this.northToSouthBetween.value - 1);
+                this.northToSouthAfter.next(
+                  this.northToSouthAfter.value + 1
+                );
+                this.northToSouthAfterNow.next(this.northToSouthAfterNow.value + 1);
+                console.log("passed north-south count: ", this.northToSouthAfterNow.value);
 
-    this.simulateTrafficUpdates();
-  }
-  private startGeneratingCars() {
-    this.subscriptions.add(
-      interval(this.getRandomInterval()).subscribe(() => {
-        console.log(`Added car to northSouth queue: ${this.northSouthQueue.value}`);
+                this.removeOldPassed("north-south")
+              }, 2000);
+            }
+          } else {
 
-        this.northSouthQueue.next(this.northSouthQueue.value + 1);
-      })
-    );
+            if (this.eastToWest.value > 0) {
+              this.eastToWest.next(this.eastToWest.value - 1);
+              this.eastToWestBetween.next(this.eastToWestBetween.value + 1);
+              console.log("between east-west count: ", this.eastToWestBetween.value)
 
-    this.subscriptions.add(
-      interval(this.getRandomInterval()).subscribe(() => {
-        console.log(`Added car to east-west queue: ${this.eastWestQueue.value}`);
+              setTimeout(() => {
+                this.eastToWestBetween.next(this.eastToWestBetween.value - 1);
+                this.eastToWestAfter.next(
+                  this.eastToWestAfter.value + 1
+                );
+                this.eastToWestAfterNow.next(this.eastToWestAfterNow.value + 1);
+                console.log("passed east-west count: ", this.eastToWestAfterNow.value);
+                this.removeOldPassed("east-west")
+              }, 2000);
+            }
+          }
+        }, 1000);
+      }
 
-        this.eastWestQueue.next(this.eastWestQueue.value + 1);
-      })
-    );
-  }
-
-  private getRandomInterval(): number {
-    return Math.random() * (30000 - 10000) + 10000;
-  }
-
-  private startTrafficLightCycle(): void {
-
-    combineLatest([
-      this.northSouthQueue,
-      this.eastWestQueue,
-      this.lightStateSubject
-
-    ]).pipe(
-      filter(([northQueue, eastQueue, lightState]) => {
-        console.log('northQueue ', northQueue + ' + eastQueue ', eastQueue + ' +lightState ', lightState);
-        return (lightState['north-south'] === 'green' && northQueue > 0) ||
-          (lightState['east-west'] === 'green' && eastQueue > 0);
-      }),
-      switchMap(([northQueue, eastQueue, lightState]) => {
-        if (lightState['north-south'] === 'green') {
-          return timer(5000).pipe(
-            tap(() => this.setLightState('north-south', 'flash-green')),
-            switchMap(() => timer(3000)),
-            tap(() => this.setLightState('north-south', 'yellow')),
-            switchMap(() => timer(2000)),
-            tap(() => this.setLightState('north-south', 'red')),
-            switchMap(() => timer(1000)),
-            tap(() => this.setLightState('east-west', 'green')),
-            tap(() => this.reduceQueueWhileGreen('east-west'))
-          );
-        } else {
-          return timer(5000).pipe(
-            tap(() => this.setLightState('east-west', 'yellow')),
-            switchMap(() => timer(2000)),
-            tap(() => this.setLightState('east-west', 'red')),
-            switchMap(() => timer(1000)),
-            tap(() => this.setLightState('north-south', 'green')),
-            tap(() => this.reduceQueueWhileGreen('north-south'))
-          );
-        }
-      })
-    ).subscribe(() => {
-      this.startTrafficLightCycle(); // Restart the cycle
     });
+    this.startTrafficLight();
   }
 
 
-  private setLightState(direction: 'north-south' | 'east-west', state: 'red' | 'yellow' | 'green' | 'flash-green'): void {
-    const currentState = this.lightStateSubject.value;
-    currentState[direction] = state;
-    this.lightStateSubject.next(currentState);
+  private startTrafficLight(): void {
+
+    this.manageTrafficLight(cycleTime);
+
+    setInterval(() => {
+      this.manageTrafficLight(cycleTime);
+    }, cycleTime);
   }
 
-  private reduceQueueWhileGreen(direction: 'north-south' | 'east-west'): void {
-    console.log('reduceQueueWhileGreen +direction' + direction)
+  private manageTrafficLight(cycleTime: number): void {
+    const greenTime = this.calcGreenTime(cycleTime);
+    const remainingTime = cycleTime - greenTime - 2 * yellowTime;
+    const redTime = Math.max(remainingTime, redTimeMin);
 
-    interval(2000).pipe(
-      takeWhile(() => this.lightStateSubject.value[direction] === 'green'),
-
-      tap(() => this.reduceQueue(direction))
-    ).subscribe();
+    //traffic light state
+    this.lightState.next('green');
+    setTimeout(() => {
+      this.lightState.next('yellow');
+      setTimeout(() => {
+        this.lightState.next('red');
+        setTimeout(() => {
+          this.lightState.next('yellow');
+        }, redTime);
+      }, yellowTime);
+    }, greenTime);
   }
-  private reduceQueue(direction: LightDirection): void {
-    if (direction === 'north-south' && this.northSouthQueue.value > 0) {
 
-      this.northSouthQueue.next(this.northSouthQueue.value - 1);
-      console.log(`reduceQueue car in north-west, queue is now ${this.eastWestQueue.value}`);
+  private calcGreenTime(cycleTime: number): number {
+    const amountCarsNS = this.northToSouth.value + this.northToSouthAfter.value;
+    const amountCarsEW = this.eastToWestAfter.value + this.eastToWest.value;
 
-    } else if (direction === 'east-west' && this.eastWestQueue.value > 0) {
-      console.log('reduceeeeee direction : ' + direction + ' car in north-south, queue is now ${this.northSouthQueue.value}');
-
-      this.eastWestQueue.next(this.eastWestQueue.value - 1);
-      console.log(`reduceQueue car in east-west, queue is now ${this.eastWestQueue.value}`);
-
+    if (amountCarsNS !== 0 && amountCarsEW !== 0) {
+      const greenRedRatio = Math.min(amountCarsEW / amountCarsNS, 2);
+      return Math.max(Math.round(((cycleTime - 2 * yellowTime) / 2) * greenRedRatio), 5000);
+    } else {
+      return (cycleTime - 2 * yellowTime) / 2;
     }
   }
 
+  private removeOldPassed(direction: string): void {
+    setTimeout(() => {
+      if (direction === 'north-south') {
+        this.northToSouthAfterNow.next(this.northToSouthAfterNow.value - 1)
+
+      } else {
+        this.eastToWestAfterNow.next(this.eastToWestAfterNow.value - 1)
+      }
+    }, 20000);
+  }
+
+  getnorthToSouth(): Observable<number> {
+    return this.northToSouth;
+  }
+
+  geteastToWest(): Observable<number> {
+    return this.eastToWest;
+  }
+  getnorthToSouthAfterPass(): Observable<number> {
+    return this.northToSouthAfterNow;
+  }
+
+  getEastToWestTraffiAfterPass(): Observable<number> {
+    return this.eastToWestAfterNow;
+  }
+
+  getnorthToSouthBetweenPass(): Observable<number> {
+    return this.northToSouthBetween;
+  }
+
+  geteastToWestBetweenPass(): Observable<number> {
+    return this.eastToWestBetween;
+  }
+
+  getlightState(): Observable<string> {
+    return this.lightState.asObservable();
+  }
 
   public processCars() {
     this.subscriptions.add(
-      //TODO: afer 2 seconds delete one car
       interval(2000).subscribe(() => {
-        if (this.lightDirection.value === 'north-south' && this.northSouthQueue.value > 0) {
-          this.northSouthQueue.next(this.northSouthQueue.value - 1);
-
-        } else if (this.lightDirection.value === 'east-west' && this.eastWestQueue.value > 0) {
-          this.eastWestQueue.next(this.eastWestQueue.value - 1);
-          console.log(`Processed car in east-west, queue is now ${this.eastWestQueue.value}`);
-
+        if (this.lightState.value === 'north-south' && this.northToSouth.value > 0) {
+          this.northToSouth.next(this.northToSouth.value - 1);
+        } else if (this.lightState.value === 'east-west' && this.eastToWest.value > 0) {
+          this.eastToWest.next(this.eastToWest.value - 1);
         }
       })
     );
   }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-    // this.subscriptions.forEach(sub => sub.unsubscribe());
   }
-
-  private startLightSwitching() {
-    this.subscriptions.add(
-      interval(1000).subscribe(() => {
-        const currentDirection = this.lightDirection.value;
-        const northSouthQueueLength = this.northSouthQueue.value;
-        const eastWestQueueLength = this.eastWestQueue.value;
-
-        if (
-          (currentDirection === 'north-south' && northSouthQueueLength === 0 && eastWestQueueLength > 0) ||
-          (currentDirection === 'east-west' && eastWestQueueLength === 0 && northSouthQueueLength > 0)
-        ) {
-          const newDirection = currentDirection === 'north-south' ? 'east-west' : 'north-south';
-          this.lightDirection.next(newDirection);
-        }
-      })
-    );
-  }
-
-  private generateRandomQueue(): any[] {
-    const randomSize = Math.floor(Math.random() * 10); // Generate random queue size (0-9)
-    const queue = [];
-    for (let i = 0; i < randomSize; i++) {
-      queue.push(`Car ${i + 1}`);
-    }
-    return queue;
-  }
-
-  
-  // // Simulate traffic updates
-  private simulateTrafficUpdates(): void {
-    setInterval(() => {
-      const northSouthQueue = this.generateRandomQueue();
-      console.log('northSouthQueue', northSouthQueue);
-      const eastWestQueue = this.generateRandomQueue();
-      console.log('eastWestQueue', eastWestQueue);
-      this.setNorthSouthQueue(northSouthQueue);
-      this.setEastWestQueue(eastWestQueue);
-    }, 6000);
-  }
-  // Method to set north-south queue
-  public setNorthSouthQueue(queue: any[]): void {
-    this.northSouthQueueSubject.next({ northSouth: queue });
-  }
-
-  // Method to set east-west queue
-  public setEastWestQueue(queue: any[]): void {
-    this.eastWestQueueSubject.next({ eastWest: queue });
-  }
-
 }
-
-
-

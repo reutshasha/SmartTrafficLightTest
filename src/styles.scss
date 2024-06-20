@@ -15,8 +15,7 @@
   --color-dark: #444;
   --color-success: #27c942;
   --color-info: #0070ac;
-  --color-warning: #FFFF00;
-  --color-warn: #e4ab00;
+  --color-warning: #efb300;
   --color-danger: #ff0000;
   --color-success-bg: #dcfae3;
   --color-danger-bg: #fbe7e9;
@@ -40,5 +39,6 @@ h1,p{
   font-family: $font-family-general;
 }
 h1{
-  padding-top: $space-4
+  padding-top: $space-5;
+  padding-bottom: $space-6
 }

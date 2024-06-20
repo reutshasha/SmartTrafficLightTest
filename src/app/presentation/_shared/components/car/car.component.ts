@@ -7,5 +7,6 @@ import { Component, Input } from '@angular/core';
 })
 export class CarComponent {
   @Input() direction: 'north-south' | 'east-west' = 'north-south';
+  @Input() carDirection!: string;
 
 }

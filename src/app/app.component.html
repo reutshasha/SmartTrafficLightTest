@@ -1,1 +1,20 @@
-<app-junction></app-junction>
+<div class="text-center">
+    <h1>Smart Traffic Light</h1>
+</div>
+
+<body>
+    <div class="plus-container">
+        <div class="horizontal-line">
+            <app-junction class="containerRow" [junctionDirection]="'eastToWest'" [junctionPart]="'before'"
+                [setJunctionTraffic]="setjunctionTrafficNS" [getJunctionTraffic]="getJunctionNS"
+                [CurrentLight]="CurrentLightEW"></app-junction>
+        </div>
+        <div></div> <app-junction class="containerCol" [junctionDirection]="'northToSouth'" [junctionPart]="'before'"
+            [setJunctionTraffic]="setjunctionTrafficEW" [getJunctionTraffic]="getJunctionEW"
+            [CurrentLight]="CurrentLightNS"></app-junction>
+        <div class="trafficLight">
+            <app-traffic-light (lightChanged)="handleLightChange1($event)" [getJunctionNS]="getJunctionNS"
+                [getJunctionEW]="getJunctionEW"></app-traffic-light>
+        </div>
+    </div>
+</body>

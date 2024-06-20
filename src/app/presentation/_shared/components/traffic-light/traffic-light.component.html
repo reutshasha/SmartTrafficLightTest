@@ -1,11 +1,21 @@
-<p>Light Direction: {{ direction }}</p>
+
+  <!-- <div class="traffic-light">
+    <div class="northLight" [ngClass]="lightStateNS"></div>
+    <div class="eastLight" [ngClass]="lightStateEW"></div>
+  </div> -->
+
   <div class="traffic-light">
+    <div class="northLight">
+      <div class="light" [ngClass]="lightStateNS"></div>
+    </div>
+    <div class="eastLight">
+      <div class="light" [ngClass]="lightStateEW"></div>
+    </div>
+  </div>
+  <!-- <div class="traffic-light">
     <div class="light red" [class.active]="lightState === 'red'"></div>
     <div class="light yellow" [class.active]="lightState === 'yellow'"></div>
     <div class="light green" [class.active]="lightState === 'green' || 
       lightState === 'flash-green'" [class.flashing]="lightState === 'flash-green'"></div>  
-  </div>
-
-  <div class="car-container">
-    <app-car *ngFor="let car of (cars$ | async) | numberToArray" [direction]="direction || 0"></app-car>
-  </div>
+  </div> -->
+  

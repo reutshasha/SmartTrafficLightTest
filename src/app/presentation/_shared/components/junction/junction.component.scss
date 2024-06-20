@@ -7,3 +7,89 @@
     font-weight: 700;
     margin-bottom: 1rem;
   }
+
+
+
+  .car-container {
+    margin-left: 10px;
+    display: flex;
+  }
+  .container {
+    display: flex;
+  }
+  
+  .containerRow {
+    display: flex;
+    flex-direction: row-reverse;
+  }
+  
+  .containerRow .Before {
+    display: flex;
+    flex-direction: row-reverse;
+    position: relative;
+    left: -1000px;
+    width: 500px;
+    height: 250px;
+    align-items: center;
+    overflow: hidden;
+  }
+  .containerRow .between {
+    display: flex;
+    position: relative;
+    left: -250px;
+    align-items: center;
+    width: 250px;
+    height: 250px;
+    flex-direction: row-reverse !important;
+    justify-content: center;
+  }
+  
+  .containerRow .After {
+    position: relative;
+    left: 500px;
+    align-items: center;
+    width: 500px;
+    height: 250px;
+    display: flex;
+    flex-direction: row-reverse !important;
+  }
+  
+  .containerCol {
+    display: flex;
+    flex-direction: column-reverse !important;
+  }
+  
+  .containerCol .Before {
+    display: flex;
+    flex-direction: column-reverse;
+    position: relative;
+    top: -750px;
+    width: 250px;
+    height: 500px;
+    align-items: center;
+    overflow: hidden;
+  }
+  .containerCol .between {
+    display: flex;
+    position: relative;
+    top: 0px;
+    align-items: center;
+    width: 250px;
+    height: 250px;
+    flex-direction: column-reverse !important;
+    justify-content: center;
+  }
+  
+  .containerCol .After {
+    position: relative;
+    top: 740px;
+    align-items: center;
+    width: 250px;
+    height: 500px;
+    display: flex;
+    flex-direction: column-reverse !important;
+  }
+  
+
+  
+  
