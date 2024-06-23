@@ -11,6 +11,11 @@ export class AppComponent {
   CurrentLightNS = 'green';
   CurrentLightEW = 'red';
 
+  handleLightChange(newValue:any){
+    console.log('Current Light:', newValue);
+
+    this.handleLightChange1(newValue);
+  }
   handleLightChange1(newValue: {
     lightStateNS: string;
     lightStateEW: string;

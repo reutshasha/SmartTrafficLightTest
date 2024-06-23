@@ -13,7 +13,7 @@
             [setJunctionTraffic]="setjunctionTrafficEW" [getJunctionTraffic]="getJunctionEW"
             [CurrentLight]="CurrentLightNS"></app-junction>
         <div class="trafficLight">
-            <app-traffic-light (lightChanged)="handleLightChange1($event)" [getJunctionNS]="getJunctionNS"
+            <app-traffic-light (lightChanged)="handleLightChange($event)" [getJunctionNS]="getJunctionNS"
                 [getJunctionEW]="getJunctionEW"></app-traffic-light>
         </div>
     </div>

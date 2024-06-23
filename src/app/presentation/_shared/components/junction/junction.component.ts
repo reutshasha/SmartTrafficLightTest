@@ -52,7 +52,7 @@ export class JunctionComponent implements OnInit {
         changes['CurrentLight'].previousValue !== 'undefined' &&
         changes['CurrentLight'].previousValue !== changes['CurrentLight'].currentValue
       ) {
-        console.log('CurrentLight has changed:', this.CurrentLight);
+        // console.log('CurrentLight has changed:', this.CurrentLight);
         this.clearTrafficInterval();
         this.setupTrafficInterval();
       }
