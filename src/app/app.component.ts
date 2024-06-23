@@ -8,8 +8,8 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'TrafficLight';
 
-  CurrentLightNS!: string;
-  CurrentLightEW!: string;
+  CurrentLightNS = 'green';
+  CurrentLightEW = 'red';
 
   handleLightChange1(newValue: {
     lightStateNS: string;

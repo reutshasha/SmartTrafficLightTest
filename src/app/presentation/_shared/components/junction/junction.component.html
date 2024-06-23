@@ -1,34 +1,36 @@
-<!-- <div class="text-center">
-  <h1>Smart Traffic Light</h1>
-  <app-traffic-light direction="north-south" initialState="green"></app-traffic-light>
-  <app-traffic-light direction="east-west" initialState="red"></app-traffic-light>
-  <div>
-  </div>
-</div> -->
-
-
 <div class="containerRow" *ngIf="junctionDirection === 'eastToWest'">
   <div class="Before">
     <app-car *ngFor="let car of carsQueue.before" [carDirection]="junctionDirection" />
+    {{"EW carsQueue length before:  " + carsQueue.before.length }}
+
   </div>
   <div class="between">
     <app-car *ngFor="let car of carsQueue.between" [carDirection]="junctionDirection" />
+    {{"EW carsQueue length between:   " + carsQueue.between.length }}
+
   </div>
 
   <div class="After">
     <app-car *ngFor="let car of carsQueue.after" [carDirection]="junctionDirection" />
+    {{"EW carsQueue length after:  " + carsQueue.after.length }}
+
   </div>
 </div>
 
 <div class="containerCol" *ngIf="junctionDirection === 'northToSouth'">
   <div class="Before">
     <app-car *ngFor="let car of carsQueue.before" [carDirection]="junctionDirection" />
+    {{"NS carsQueue length - before:  " + carsQueue.before.length }}
   </div>
   <div class="between">
     <app-car *ngFor="let car of carsQueue.between" [carDirection]="junctionDirection" />
+    {{"NS carsQueue length - between: " + carsQueue.between.length }}
+
   </div>
 
   <div class="After">
     <app-car *ngFor="let car of carsQueue.after" [carDirection]="junctionDirection" />
+    {{"NS carsQueue length - after:   " + carsQueue.after.length }}
+
   </div>
 </div>
